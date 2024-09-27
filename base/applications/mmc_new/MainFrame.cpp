@@ -40,8 +40,19 @@ LRESULT CMainFrame::OnHelpAbout(WORD, WORD, HWND, BOOL&)
 LRESULT CMainFrame::OnAddRemoveSnap(WORD, WORD, HWND, BOOL&)
 {
     // Create Modal add/remove
-    CAddRemoveDialog addDlg;
-    addDlg.DoModal();    
+    CAddRemoveStandalonePropSheet psStandalone;
+    CAddRemoveExtensionsPropSheet psExtensions;
+    HPROPSHEETPAGE hpsp[2] = { psStandalone.Create(), psExtensions.Create() };
+
+    PROPSHEETHEADER psh = {};
+    psh.dwSize = sizeof(psh);
+    psh.dwFlags = PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
+    psh.hInstance = _AtlBaseModule.GetResourceInstance();
+    psh.pszCaption = TEXT("Add/Remove Snap-in");
+    psh.nPages = _countof(hpsp);
+    psh.phpage = hpsp;
+
+    PropertySheetW(&psh);
 
     return 0;
 }

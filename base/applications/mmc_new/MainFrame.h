@@ -4,6 +4,8 @@
 
 #include "atlmdi.h"
 
+#include "NodeManager.h"
+
 class CMainFrame : public CMdiFrameWindowImpl<CMainFrame>
 {
 public:
@@ -34,4 +36,7 @@ END_MSG_MAP()
     LRESULT OnHelpAbout(WORD, WORD, HWND, BOOL&);
 
     void OnFinalMessage(HWND);
+
+private:
+    NodeManager m_NodeManager;
 };

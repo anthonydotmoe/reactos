@@ -2,10 +2,12 @@
 
 LRESULT CChildFrame::OnQueryClose(UINT, WPARAM, LPARAM, BOOL &bHandled)
 {
-    UINT msg = MessageBox(_T("May I close this window?"), _T("Confirm"), MB_ICONQUESTION | MB_YESNO);
+    /*
+    UINT msg = MessageBox(_T("Save console settings?"), _T("ReactOS Management Console"), MB_ICONWARNING | MB_YESNOCANCEL);
 
     // If it's OK, let DefMDIChildProc close us
-    if (msg == IDYES)
+    if (msg == IDNO)
+    */
         bHandled = FALSE;
     
     return 0;
@@ -46,6 +48,16 @@ LRESULT CChildFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL)
     {
         return 0; // Continue creation of the window
     }
+}
+
+LRESULT CChildFrame::OnSize(UINT, WPARAM, LPARAM, BOOL)
+{
+    RECT rcClient;
+    //HINSTANCE hInst = _AtlBaseModule.GetModuleInstance();
+
+    GetClientRect(&rcClient);
+    //TODO: Handle Size
+    return 0;
 }
 
 void CChildFrame::OnFinalMessage(HWND)
