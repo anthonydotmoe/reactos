@@ -1,0 +1,130 @@
+import "unknwn.idl";
+import "oaidl.idl";
+
+/*
+ * I'm commenting out all interfaces that haven't been defined yet.
+ *
+ *
+ *
+ */
+
+// MMC
+//interface IConsole;
+//interface IConsoleNameSpace;
+//interface IConsoleVerb;
+//interface IControlBar;
+//interface IHeaderCtrl;
+//interface IImageList;
+//interface IMenuButton;
+//interface IPropertySheetCallback;
+//interface IPropertySheetProvider;
+//interface IResultData;
+//interface IToolbar;
+
+// Snap-in
+//interface IComponent;
+//interface IComponentData;
+//interface IExtendContextMenu;
+//interface IExtendControlbar;
+//interface IExtendPropertySheet;
+//interface IResultDataCompare;
+//interface IResultOwnerData;
+interface ISnapinAbout;
+//interface ISnapinHelp
+
+////// MMC 1.1
+// Adds:
+// - Snap-in taskpads
+// - Wizard-style property sheets
+// - Ability to load extensions to a snap-in at run-time
+// - HTML Help support
+
+// MMC
+//interface IConsole2;
+//interface IConsoleNameSpace2;
+//interface IDisplayHelp;
+//interface IHeaderCtrl2;
+//interface IStringTable;
+
+// Snap-in
+//interface IEnumTASK;
+//interface IExtendPropertySheet2;
+//interface IExtendTaskPad;
+//interface IRequiredExtensions;
+//interface ISnapinHelp2;
+
+////// MMC 1.2
+// Adds:
+// - Support for Windows Installer and Group Policy
+// - Filtered views
+// - Exporting list views to a text file
+// - Persistence of user-set column layouts (i.e. widths, ordering, visibility
+//   and sorting of lists)
+
+// MMC
+//interface IColumnData;
+
+// Snap-in
+//interface IResultDataCompareEx;
+
+////// MMC 2.0
+// Adds:
+// - Operating system-defined visual styles
+// - Automation object model, allowing the capabilities of an MMC snap-in to be
+//   used programmatically from outside MMC itself
+// - 64-bit snap-ins
+// - Console Taskpads
+// - View Extensions
+// - Multilanguage User Interface help files
+
+// MMC
+//interface IConsole3;
+//interface IConsolePower;
+//interface INodeProperties;
+//interface IResultData2;
+
+// Snap-in
+//interface IComponent2;
+//interface IComponentData2;
+//interface IExtendView;
+//interface IViewExtensionCallback;
+//interface IConsolePowerSink;
+//interface IConsole3;
+//interface INodeProperties;
+
+/*****************************************************************************
+ * ISnapinAbout interface
+ */
+[
+    object,
+    uuid(1245208C-A151-11D0-A7D7-00C04FD909DD),
+    pointer_default(unique)
+]
+interface ISnapinAbout : IUnknown
+{
+    typedef ISnapinAbout *LPSNAPINABOUT;
+    typedef ISnapinAbout *LPSNAPABOUT;
+
+    HRESULT GetSnapinDescription(
+        [out] LPOLESTR *lpDescription
+    );
+
+    HRESULT GetProvider(
+        [out] LPOLESTR *lpName
+    );
+
+    HRESULT GetSnapinVersion(
+        [out] LPOLESTR *lpVersion
+    );
+
+    HRESULT GetSnapinImage(
+        [out] HICON *hAppIcon
+    );
+
+    HRESULT GetStaticFolderImage(
+        [out] HBITMAP *hSmallImage,
+        [out] HBITMAP *hSmallImageOpen,
+        [out] HBITMAP *hLargeImage,
+        [out] COLORREF *cMask
+    );
+}
