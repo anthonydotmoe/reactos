@@ -1,0 +1,84 @@
+#include <windef.h>
+#include <winuser.h>
+#include <CommCtrl.h>
+
+#include "resource.h"
+
+#define REACTOS_STR_FILE_DESCRIPTION  "ReactOS Management Console 2.0"
+#define REACTOS_STR_INTERNAL_NAME     "mmc"
+#define REACTOS_STR_ORIGINAL_FILENAME "mmc.exe"
+#include <reactos/version.rc>
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+IDI_MAINAPP ICON "resources/mmc.ico"
+
+/* UTF-8 */
+#pragma code_page(65001)
+
+IDM_CONSOLE_SMALL MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N", IDM_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O", IDM_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4", IDM_FILE_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ReactOS Management Console", IDM_HELP_ABOUT
+    END
+END
+
+IDM_CONSOLE_LARGE MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N", IDM_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O", IDM_FILE_OPEN
+        MENUITEM "&Save\tCtrl+S", IDM_FILE_SAVE
+        MENUITEM "Save &As...", IDM_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "Add/Remove Snap-in...\tCtrl+M", IDM_FILE_ADDREMOVESNAP
+        MENUITEM "Options...", IDM_FILE_OPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File", IDM_FILE_RECENT, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4", IDM_FILE_EXIT
+    END
+    POPUP "&Windows"
+    BEGIN
+        MENUITEM "&New Window\tCtrl+W", IDM_WINDOW_NEWWINDOW
+        MENUITEM SEPARATOR
+        MENUITEM "&Cascade", IDM_WINDOW_CASCADE
+        MENUITEM "&Tile Horizontally", IDM_WINDOW_TILEHORZ
+        MENUITEM "Arrange &Icons", IDM_WINDOW_ARRANGEICONS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ReactOS Management Console", IDM_HELP_ABOUT
+    END
+END
+
+STRINGTABLE
+BEGIN
+    IDS_APPTITLE "ReactOS Management Console"
+    IDS_CONSOLETITLE "Console%1!u!"
+END
+
+IDD_ADDREMOVESNAP DIALOGEX 0, 0, 259, 225
+STYLE DS_SHELLFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Standalone"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL "Use this page to add or remove a stand-alone snap-in from the console.", -1, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 7, 7, 245, 19
+
+    CONTROL "&Snap-ins added to:", -1, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 7, 33, 63, 10
+    CONTROL "Combo", -1, "ComboBoxEx32", CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 73, 32, 155, 81
+
+    CONTROL "List", IDL_STANDALONESNAPLIST, "SysListView32", LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_NOCOLUMNHEADER | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 7, 55, 245, 94
+
+    CONTROL "Description", -1, BUTTON, BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 7, 153, 245, 44
+    CONTROL "", -1 EDIT, ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP, 10, 162, 240, 33
+END

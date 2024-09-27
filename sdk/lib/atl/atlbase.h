@@ -27,6 +27,7 @@
 #include "atlalloc.h"
 #include "atlexcept.h"
 #include "atltrace.h"
+#include "atlsimpcoll.h"
 #include "comcat.h"
 #include "tchar.h"
 
@@ -176,9 +177,7 @@ struct _ATL_WIN_MODULE70
     UINT cbSize;
     CComCriticalSection m_csWindowCreate;
     _AtlCreateWndData *m_pCreateWndList;
-#ifdef NOTYET
     CSimpleArray<ATOM>                        m_rgWindowClassAtoms;
-#endif
 };
 typedef _ATL_WIN_MODULE70 _ATL_WIN_MODULE;
 
@@ -1657,6 +1656,9 @@ inline HRESULT __stdcall AtlWinModuleTerm(_ATL_WIN_MODULE *pWinModule, HINSTANCE
 {
     if (pWinModule == NULL)
         return E_INVALIDARG;
+    for (int i = 0; i < pWinModule->m_rgWindowClassAtoms.GetSize(); i++)
+        UnregisterClass(reinterpret_cast<LPCTSTR>(pWinModule->m_rgWindowClassAtoms[i]), hInst);
+    pWinModule->m_rgWindowClassAtoms.RemoveAll();
     pWinModule->m_csWindowCreate.Term();
     return S_OK;
 }

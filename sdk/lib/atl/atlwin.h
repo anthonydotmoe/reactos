@@ -69,6 +69,42 @@ namespace ATL
 struct _ATL_WNDCLASSINFOW;
 typedef _ATL_WNDCLASSINFOW CWndClassInfo;
 
+#define DECLARE_WND_CLASS(WndClassName)                                                   \
+static ATL::CWndClassInfo& GetWndClassInfo()                                              \
+{                                                                                         \
+    static ATL::CWndClassInfo wc =                                                        \
+    {                                                                                     \
+        { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, StartWindowProc,      \
+          0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, WndClassName, NULL }, \
+        NULL, NULL, IDC_ARROW, TRUE, 0, _T("")                                            \
+    };                                                                                    \
+    return wc;                                                                            \
+}
+
+#define DECLARE_WND_CLASS2(WndClassName, EnclosingClass)                                             \
+static ATL::CWndClassInfo& GetWndClassInfo()                                                         \
+{                                                                                                    \
+    static ATL::CWndClassInfo wc =                                                                   \
+    {                                                                                                \
+        { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, EnclosingClass::StartWindowProc, \
+          0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, WndClassName, NULL },            \
+        NULL, NULL, IDC_ARROW, TRUE, 0, _T("")                                                       \
+    };                                                                                               \
+    return wc;                                                                                       \
+}
+
+#define DECLARE_WND_CLASS_EX(WndClassName, style, bkgnd)    \
+static ATL::CWndClassInfo& GetWndClassInfo()                \
+{                                                           \
+    static ATL::CWndClassInfo wc =                          \
+    {                                                       \
+        { sizeof(WNDCLASSEX), style, StartWindowProc,       \
+          0, 0, NULL, NULL, NULL, (HBRUSH)(bkgnd + 1), NULL, WndClassName, NULL }, \
+        NULL, NULL, IDC_ARROW, TRUE, 0, _T("")              \
+    };                                                      \
+    return wc;                                              \
+}
+
 template <DWORD t_dwStyle = 0, DWORD t_dwExStyle = 0>
 class CWinTraits
 {
@@ -1726,6 +1762,8 @@ public:
     using CWindowImplRoot<TBase>::m_hWnd;
     // - Hacks for gcc
 
+    DECLARE_WND_CLASS2(NULL, CWindowImpl)
+
     static LPCTSTR GetWndCaption()
     {
         return NULL;
@@ -2001,17 +2039,174 @@ public:                             \
             return TRUE;                \
     }
 
-#define DECLARE_WND_CLASS_EX(WndClassName, style, bkgnd)    \
-static ATL::CWndClassInfo& GetWndClassInfo()                \
-{                                                           \
-    static ATL::CWndClassInfo wc =                          \
-    {                                                       \
-        { sizeof(WNDCLASSEX), style, StartWindowProc,       \
-          0, 0, NULL, NULL, NULL, (HBRUSH)(bkgnd + 1), NULL, WndClassName, NULL }, \
-        NULL, NULL, IDC_ARROW, TRUE, 0, _T("")              \
-    };                                                      \
-    return wc;                                              \
+/* BEGIN COPYRIGHT MICROSOFT */
+
+ATOM __stdcall AtlWinModuleRegisterClassExW(
+    _ATL_WIN_MODULE *pWinModule,
+    const WNDCLASSEXW *lpwc);
+
+inline ATOM AtlModuleRegisterClassExW(
+    _ATL_MODULE* /*pM*/,
+    const WNDCLASSEXW *lpwc
+)
+{
+    return AtlWinModuleRegisterClassExW(&_AtlWinModule, lpwc);
 }
+
+
+class AtlModuleRegisterWndClassInfoParamW
+{
+public:
+    typedef LPWSTR  PXSTR;
+    typedef LPCWSTR PCXSTR;
+    typedef _ATL_WNDCLASSINFOW _ATL_WNDCLASSINFO;
+    typedef WNDCLASSEXW WNDCLASSEX;
+
+    static BOOL GetClassInfoEx(
+        HINSTANCE hInst,
+        PCXSTR lpszClass,
+        WNDCLASSEX *lpwcx
+    )
+    {
+        return ::GetClassInfoExW(hInst, lpszClass, lpwcx);
+    }
+
+    static void FormatWindowClassName(
+        PXSTR szBuffer,
+        DWORD dwBuffSize,
+        void *unique
+    )
+    {
+        //swprintf_s(szBuffer, dwBuffSize, L"ATL:%p", unique);
+        swprintf(szBuffer, L"ATL:%p", unique);
+    }
+
+    static HCURSOR LoadCursor(
+        HINSTANCE hInstance,
+        PCXSTR lpCursorName
+    )
+    {
+        return ::LoadCursorW(hInstance, lpCursorName);
+    }
+
+    static ATOM RegisterClassEx(
+        _ATL_WIN_MODULE *pWinModule,
+        WNDCLASSEX *lpwcx
+    )
+    {
+        return AtlWinModuleRegisterClassExW(pWinModule, lpwcx);
+    }
+};
+
+inline ATOM _stdcall AtlWinModuleRegisterClassExW(
+	_ATL_WIN_MODULE* pWinModule,
+	const WNDCLASSEXW *lpwc)
+{
+	if (pWinModule == NULL || lpwc == NULL)
+		return 0;
+
+	ATOM atom = ::RegisterClassExW(lpwc);
+	if (atom != 0)
+	{
+		BOOL bRet = pWinModule->m_rgWindowClassAtoms.Add(atom);
+		ATLASSERT(bRet);
+		(bRet);
+	}
+	return atom;
+}
+
+template <class T>
+ATOM AtlModuleRegisterWndClassInfoT(
+    _ATL_BASE_MODULE *pBaseModule,
+    _ATL_WIN_MODULE *pWinModule,
+    typename T::_ATL_WNDCLASSINFO *p,
+    WNDPROC *pProc,
+    T
+)
+{
+    if (pBaseModule == NULL || pWinModule == NULL || p == NULL || pProc == NULL)
+    {
+        // E_INVALIDARG
+        ATLASSERT(0);
+        return 0;
+    }
+
+    if (p->m_atom == 0)
+    {
+        ATL::CComCritSecLock<ATL::CComCriticalSection> lock(pWinModule->m_csWindowCreate, false);
+        if (FAILED(lock.Lock()))
+        {
+            // Unable to lock critical section
+            ATLASSERT(0);
+            return 0;
+        }
+        if (p->m_atom == 0)
+        {
+            if (p->m_lpszOrigName != NULL)
+            {
+                ATLASSERT(pProc != NULL);
+                typename T::PCXSTR lpsz = p->m_wc.lpszClassName;
+                WNDPROC proc = p->m_wc.lpfnWndProc;
+
+                typename T::WNDCLASSEX wc;
+                wc.cbSize = sizeof(wc);
+                // Try global class
+                if(!T::GetClassInfoEx(NULL, p->m_lpszOrigName, &wc))
+                {
+                    // Try process local
+                    if(!T::GetClassInfoEx(pBaseModule->m_hInst, p->m_lpszOrigName, &wc))
+                    {
+                        // ERROR! Couldn't obtain window class information for T!
+                        return 0;
+                    }
+                }
+                p->m_wc = wc;
+                p->pWndProc = p->m_wc.lpfnWndProc;
+                p->m_wc.lpszClassName = lpsz;
+                p->m_wc.lpfnWndProc = proc;
+            }
+            else
+            {
+                p->m_wc.hCursor = T::LoadCursor(p->m_bSystemCursor ? NULL : pBaseModule->m_hInstResource, p->m_lpszCursorID);
+            }
+
+            p->m_wc.hInstance = pBaseModule->m_hInst;
+            p->m_wc.style &= ~CS_GLOBALCLASS; // we don't register global classes
+            if (p->m_wc.lpszClassName == NULL)
+            {
+                T::FormatWindowClassName(p->m_szAutoName, _countof(p->m_szAutoName), &p->m_wc);
+                p->m_wc.lpszClassName = p->m_szAutoName;
+            }
+            typename T::WNDCLASSEX wcTemp;
+            wcTemp = p->m_wc;
+            p->m_atom = static_cast<ATOM>(T::GetClassInfoEx(p->m_wc.hInstance, p->m_wc.lpszClassName, &wcTemp));
+            if (p->m_atom == 0)
+            {
+                p->m_atom = T::RegisterClassEx(pWinModule, &p->m_wc);
+            }
+        }
+    }
+
+    if (p->m_lpszOrigName != NULL)
+    {
+        ATLASSERT(pProc != NULL);
+        ATLASSERT(p->pWndProc != NULL);
+        *pProc = p->pWndProc;
+    }
+    return p->m_atom;
+}
+
+inline ATOM AtlWinModuleRegisterWndClassInfoW(
+    _ATL_WIN_MODULE *pWinModule,
+    _ATL_BASE_MODULE *pBaseModule,
+    _ATL_WNDCLASSINFOW *p,
+    WNDPROC *pProc)
+{
+    AtlModuleRegisterWndClassInfoParamW templateParameter;
+    return AtlModuleRegisterWndClassInfoT<AtlModuleRegisterWndClassInfoParamW>(
+        pBaseModule, pWinModule, p, pProc, templateParameter);
+}
+/*   END COPYRIGHT MICROSOFT */
 
 struct _ATL_WNDCLASSINFOW
 {
@@ -2023,6 +2218,7 @@ struct _ATL_WNDCLASSINFOW
     ATOM m_atom;
     TCHAR m_szAutoName[sizeof("ATL:") + sizeof(void *) * 2]; // == 4 characters + NULL + number of hexadecimal digits describing a pointer.
 
+    /*
     ATOM Register(WNDPROC *p)
     {
         if (m_wc.hInstance == NULL)
@@ -2039,6 +2235,14 @@ struct _ATL_WNDCLASSINFOW
 
         return m_atom;
     }
+    */
+    
+    /* BEGIN COPYRIGHT MICROSOFT */
+    ATOM Register(WNDPROC *p)
+    {
+        return AtlWinModuleRegisterWndClassInfoW(&_AtlWinModule, &_AtlBaseModule, this, p);
+    }
+    /* END   COPYRIGHT MICROSOFT */
 };
 
 }; // namespace ATL
