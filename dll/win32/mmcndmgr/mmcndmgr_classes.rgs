@@ -1,0 +1,51 @@
+HKCR
+{
+    NoRemove CLSID
+    {
+        '{C96401CC-0E17-11D3-885B-00C04F72FFFF}' = s 'Folder'
+        {
+            InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Apartment' }
+            ProgId = s 'ReactOSSnapins.FolderSnapin.1'
+            VersionIndependentProgId = s 'ReactOSSnapins.FolderSnapin'
+        }
+    }
+    'ReactOSSnapins.FolderSnapin.1' = s 'Folder'
+    {
+        CLSID = s '{C96401CC-0E17-11D3-885B-00C04F72FFFF}'
+    }
+    'ReactOSSnapins.FolderSnapin' = s 'Folder'
+    {
+        CLSID = s '{C96401CC-0E17-11D3-885B-00C04F72FFFF}'
+        CurVer = s 'ReactOSSnapins.FolderSnapin.1'
+    }
+}
+
+HKLM
+{
+    NoRemove SOFTWARE
+    {
+        NoRemove Microsoft
+        {
+            NoRemove MMC
+            {
+                NoRemove SnapIns
+                {
+                    '{C96401CC-0E17-11D3-885B-00C04F72FFFF}'
+                    {
+                        val About = s '{C96401CC-0E17-11D3-885B-00C04F72FFFF}'
+                        val NameString = s 'Folder'
+                        Standalone
+                        NodeTypes
+                        {
+                            '{C96401CE-0E17-11D3-885B-00C04F72FFFF}'
+                        }
+                    }
+                }
+                NoRemove NodeTypes
+                {
+                    '{C96401CE-0E17-11D3-885B-00C04F72FFFF}'
+                }
+            }
+        }
+    }
+}

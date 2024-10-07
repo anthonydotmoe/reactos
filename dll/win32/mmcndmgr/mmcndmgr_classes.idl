@@ -1,0 +1,9 @@
+
+[
+    uuid(C96401CC-0E17-11D3-885B-00C04F72FFFF)
+]
+coclass Folder {
+    interface ISnapinAbout;
+    interface IComponent;
+    interface IComponentData;
+}

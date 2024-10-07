@@ -1,0 +1,1 @@
+#define IDR_CLASSESREG 1001

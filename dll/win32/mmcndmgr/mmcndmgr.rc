@@ -1,0 +1,2 @@
+#include "resource.h"
+IDR_CLASSESREG REGISTRY "mmcndmgr_classes.rgs"
