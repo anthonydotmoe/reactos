@@ -88,9 +88,9 @@ Export List (Paper with arrow pointing to the right)
 SEPARATOR
 Help (Paper with Question Mark)
 Show/Hide Action Pane
+```
 
-
-Registry:
+## Registry:
 
 Stores recently opened files and some settings (I don't think it actually stores
 anything) in HKCU:
@@ -109,3 +109,15 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\Microsoft Management Console\Settings]
 
 ```
+
+- Snap-ins are MMC 3.0 Snap-ins if the CLSID is preceded by `FX:`
+- MMC 3.0 Snap-ins seem to not use ISnapinAbout, and have the "About" properties
+  listed as registry values in their key:
+    - REG_SZ: Description, DescriptionStringIndirect
+    - REG_DWORD: FolderBitmapsColorMask
+    - REG_SZ: IconIndirect
+    - REG_SZ: LargeFolderBitmapIndirect
+    - REG_SZ: Provider, ProviderStringIndirect
+    - REG_SZ: SmallFolderBitmapIndirect
+    - REG_SZ: SmallSelectedFolderBitmapIndirect
+    - REG_SZ: Version

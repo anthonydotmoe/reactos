@@ -1,8 +1,6 @@
 #include "precomp.h"
 #include "NodeManager.h"
 
-const IID TheISnapinAbout = IID_ISnapinAbout;
-
 /******************************************************************************
  * load_string [Internal]
  *
@@ -150,6 +148,10 @@ void UpdateSnapinInfo(std::vector<SnapinInfo> &snapins);
 
 NodeManager::NodeManager()
 {
+
+    // Create Imagelists
+    InitializeImageLists();
+
     // Retrieve all standalone snapins
     CRegKey rkSnapins;
     LRESULT lResult;
@@ -184,7 +186,7 @@ NodeManager::NodeManager()
         }
 
         // Get the ISnapinAbout CLSID
-        CLSID clsidAbout = {0};
+        CLSID clsidAbout;
         lResult = rkSnapIn.QueryGUIDValue(TEXT("About"), clsidAbout);
         if (lResult == ERROR_SUCCESS) {
             sii.hasAbout = TRUE;
@@ -222,7 +224,7 @@ NodeManager::NodeManager()
 
 // Enumerate `snapins` and use its associated ISnapinAbout to retrieve and store
 // the info.
-void UpdateSnapinInfo(std::vector<SnapinInfo> &snapins)
+void NodeManager::UpdateSnapinInfo(std::vector<SnapinInfo> &snapins)
 {
     for (SnapinInfo &snap : snapins)
     {
@@ -232,7 +234,7 @@ void UpdateSnapinInfo(std::vector<SnapinInfo> &snapins)
             CComPtr<ISnapinAbout> pSnapinAbout;
 
             // ??? ATL CComPtr?
-            hr = pSnapinAbout.CoCreateInstance(static_cast<const _GUID&>(snap.aboutclsid), TheISnapinAbout, NULL, CLSCTX_INPROC_SERVER);
+            hr = pSnapinAbout.CoCreateInstance(static_cast<const _GUID&>(snap.aboutclsid), IID_ISnapinAbout, NULL, CLSCTX_INPROC_SERVER);
             if (hr != S_OK)
                 continue;
             
@@ -241,7 +243,7 @@ void UpdateSnapinInfo(std::vector<SnapinInfo> &snapins)
             hr = pSnapinAbout->GetProvider(&provider);
             if (hr == S_OK)
             {
-                snap.provider = std::wstring(provider);
+                snap.provider.assign(provider);
                 CoTaskMemFree(provider);
             }
 
@@ -250,9 +252,47 @@ void UpdateSnapinInfo(std::vector<SnapinInfo> &snapins)
             hr = pSnapinAbout->GetSnapinDescription(&description);
             if (hr == S_OK)
             {
-                snap.description = std::wstring(description);
+                snap.description.assign(description);
                 CoTaskMemFree(description);
+            }
+
+            // Get Static folder image
+
+            HBITMAP hSmallImage, hSmallImageOpen, hLargeImage;
+            COLORREF cMask;
+            hr = pSnapinAbout->GetStaticFolderImage(&hSmallImage, &hSmallImageOpen, &hLargeImage, &cMask);
+            if (hr == S_OK)
+            {
+                snap.iSmallImage = ImageList_AddMasked(m_ilSmNodes, hSmallImage, cMask);
+                snap.iSmallImageOpen = ImageList_AddMasked(m_ilSmNodes, hSmallImageOpen, cMask);
+                snap.iLargeImage = ImageList_AddMasked(m_ilLgNodes, hLargeImage, cMask);
             }
         }
     }
+}
+
+void NodeManager::InitializeImageLists()
+{
+    HDC hdc = GetDC(NULL);
+    int colorDepth = GetDeviceCaps(hdc, BITSPIXEL) * GetDeviceCaps(hdc, PLANES);
+    ReleaseDC(NULL, hdc);
+
+    UINT flags = ILC_MASK;
+
+    if (colorDepth >= 32)
+    {
+        flags |= ILC_COLOR32;
+    }
+    else if (colorDepth == ILC_COLOR24 || colorDepth == ILC_COLOR16 || colorDepth == ILC_COLOR8 || colorDepth == ILC_COLOR4)
+    {
+        flags |= colorDepth;
+    }
+    m_ilSmNodes = ImageList_Create(16, 16, flags, 10, 10);
+    m_ilLgNodes = ImageList_Create(32, 32, flags, 10, 10);
+}
+
+NodeManager::~NodeManager()
+{
+    ImageList_Destroy(m_ilSmNodes);
+    ImageList_Destroy(m_ilLgNodes);
 }

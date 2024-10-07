@@ -1,5 +1,7 @@
 #include "AddRemoveDialog.h"
 
+#include "AddStandalone.h"
+
 #include <vector>
 #include <string>
 
@@ -36,5 +38,13 @@ LRESULT CAddRemoveStandalonePropSheet::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 LRESULT CAddRemoveStandalonePropSheet::OnClose(UINT, WPARAM, LPARAM, BOOL&)
 {
     EndDialog(0);
+    return 0;
+}
+
+LRESULT CAddRemoveStandalonePropSheet::OnAddStandaloneButton(WORD, WORD, HWND, BOOL&)
+{
+    // Spawn the "Add Standalone Snap-in dialog"
+    CAddStandalone addStnd(m_refNodeMgr);
+    addStnd.DoModal();
     return 0;
 }

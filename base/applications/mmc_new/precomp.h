@@ -10,6 +10,8 @@
 
 #include <winreg.h>
 
+#include <shellapi.h>
+
 #include <commctrl.h>
 #include <commdlg.h>
 

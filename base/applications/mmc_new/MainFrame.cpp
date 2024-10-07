@@ -31,17 +31,46 @@ LRESULT CMainFrame::OnFileNew(WORD, WORD, HWND, BOOL&)
     return 0;
 }
 
+// Helper laod string function
+std::wstring LoadStringFromResource(HINSTANCE hInstance, UINT uID)
+{
+    // Pointer to the first character of the string
+    const wchar_t *pchStringBegin = nullptr;
+
+    const int cchStringLength = ::LoadStringW(
+        hInstance,
+        uID,
+        reinterpret_cast<PWSTR>(&pchStringBegin),
+        0
+    );
+    ATLASSERT(cchStringLength >= 0);
+    if (cchStringLength > 0)
+    {
+        // Success
+        return std::wstring(pchStringBegin, cchStringLength);
+    }
+    else
+    {
+        // Failure: throw?
+        AtlThrow(E_FAIL);
+        return NULL;
+    }
+}
+
 LRESULT CMainFrame::OnHelpAbout(WORD, WORD, HWND, BOOL&)
 {
-    MessageBox(TEXT("ReactOS Management Console 1.0"), TEXT("About ReactOS Management Console"));
+    //if (AllocAndLoadString(&lpTitle, hAppInstance, IDS_APPTITLE))
+    HINSTANCE hInst = _AtlBaseModule.GetModuleInstance();
+    std::wstring appName = LoadStringFromResource(hInst, IDS_APPTITLE);
+    ShellAboutW(m_hWnd, appName.c_str(), NULL, LoadIcon(hInst, MAKEINTRESOURCE(IDI_MAINAPP)));
     return 0;
 }
 
 LRESULT CMainFrame::OnAddRemoveSnap(WORD, WORD, HWND, BOOL&)
 {
     // Create Modal add/remove
-    CAddRemoveStandalonePropSheet psStandalone;
-    CAddRemoveExtensionsPropSheet psExtensions;
+    CAddRemoveStandalonePropSheet psStandalone(m_NodeManager);
+    CAddRemoveExtensionsPropSheet psExtensions(m_NodeManager);
     HPROPSHEETPAGE hpsp[2] = { psStandalone.Create(), psExtensions.Create() };
 
     PROPSHEETHEADER psh = {};
